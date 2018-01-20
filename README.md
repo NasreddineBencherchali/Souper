@@ -1,7 +1,7 @@
 # Souper
-A python script that extract information from a given web page and display that information in a generated Html file.
+A python script that extract information from a given web page and display that information in a generated **HTML** file.
 
-Currently the script extract the follwing **Tags** and **Information** : 
+Currently the script extract the follwing **Tags** and **Informations** : 
 
 * HTTP Response Header.
 * Robots.txt
