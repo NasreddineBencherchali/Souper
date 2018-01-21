@@ -1,15 +1,10 @@
 from bs4 import BeautifulSoup, Comment
-import requests, cgi, urlparse 
+import requests, cgi, urlparse, re
 
 
-def send_request_and_beautify_the_response(url, cookies_dict):
-
-	if cookies_dict != {}:
-		# send a GET request to the website without verifying SSL, and provide cookies value
-		response = requests.get(url, verify=False, cookies=cookies_dict)
-	else:
-		# send a GET request to the website without verifying SSL
-		response = requests.get(url, verify=False)
+def send_request_and_beautify_the_response(url, cookies_dict, proxies_dict):
+	# send a GET request to the website without verifying SSL, and provide cookies value
+	response = requests.get(url, verify=False, cookies=cookies_dict, proxies=proxies_dict)
 
 	# get the response in text format
 	response_text = response.text
@@ -24,6 +19,16 @@ def get_response_header(r):
 	response_header = r.headers
 	return response_header
 
+def get_allowed_http_verbs(url):
+	verbs = ['GET', 'HEAD' , 'POST', 'PUT', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
+	allowed_verbs = []
+	for every_verb in verbs:
+		r = requests.request(every_verb, url)
+		if r.status_code == 200:
+			allowed_verbs.append(every_verb)
+
+	return allowed_verbs
+
 def get_information(r):
 	# Get the title of the page
 	page_title = r.title.string.encode("utf-8")
@@ -33,8 +38,15 @@ def get_information(r):
 	for link in r.find_all('a'):
 		list_of_links.append(link.get('href'))
 
+	# Get a list of all the emails
+	email_regex = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+	list_of_emails = re.findall(email_regex,r.text)
+	list_of_emails_decoded = []
+	for every_email in list_of_emails:
+		list_of_emails_decoded.append(every_email.encode('utf-8'))
+
 	# Returns the list of all the links found in a page in case we want to crawl them for more information
-	return list_of_links, page_title
+	return list_of_links, page_title, list_of_emails_decoded
 
 def get_all_tags(r):
 	# Get all the </a> tags
@@ -80,8 +92,10 @@ def creating_title_header_page(page_url):
 	title_header = '<table><tr class="h"><td><h1 class="p">GETTING INFORMATION ABOUT  :  <a href=' + page_url + '>'+ page_url +'</a></h1></td></tr></table><hr><ul>'
 	links_header = ''
 
-	# Link to Response Header
+	# Link to Response_Header
 	links_header = links_header + '<li><a href="#Response_Header">' + cgi.escape("Response Header") + '</a> | </li>'
+	# Link ro Allowed_HTTP_Verbs
+	links_header = links_header + '<li><a href="#Allowed_HTTP_Verbs">' + cgi.escape("Allowed HTTP Verbs") + '</a> | </li>'
 	# Link to Robots.txt
 	links_header = links_header + '<li><a href="#Robots_txt">' + cgi.escape("Robots.txt ") + '</a>  |  </li>'
 	# Link to link_tags
@@ -96,6 +110,8 @@ def creating_title_header_page(page_url):
 	links_header = links_header + '<li><a href="#hidden_inputs">' + cgi.escape("<input type='hidden'>") + '</a>  |  </li>'
 	# Link to title_of_page
 	links_header = links_header + '<li><a href="#title_of_page">' + cgi.escape("<title>") + '</a>  |  </li>'
+	# Link to emails
+	links_header = links_header + '<li><a href="#emails">' + cgi.escape("E-mails") + '</a>  |  </li>'
 	# Link to hrefs
 	links_header = links_header + '<li><a href="#hrefs">' + cgi.escape("<a href='' >") + '</a></li>'
 
@@ -115,6 +131,13 @@ def creating_content(title, content):
 		for field_name, field_value in response_cookie.iteritems():
 			page_content = page_content +  field_name + " : " + field_value + '</br></br>'
 		
+		page_content = page_content + '</td></tr>'
+
+	elif title == 'Allowed HTTP Verbs':
+		page_content = '<tr><td class="e" id="Allowed_HTTP_Verbs">' + title  + '</td><td class="v">'
+		for every_verb in content:
+			page_content = page_content + every_verb + '</br></br>'
+
 		page_content = page_content + '</td></tr>'
 
 	elif title == 'Robots.txt':
@@ -164,22 +187,30 @@ def creating_content(title, content):
 		page_content = page_content + '</td></tr>'
 
 	elif title == "All Information":
-		# For the title
-		page_content = '<tr><td class="e" id="title_of_page">' + cgi.escape("<title>")  + '</td><td class="v">' + content[1] + '</td></tr>'
-
+		
 		# For all the links
-		page_content = page_content + '<tr><td class="e" id="hrefs">' + cgi.escape("<a href='' >")  + '</td><td class="v">'
+		page_content = '<tr><td class="e" id="hrefs">' + cgi.escape("<a href='' >")  + '</td><td class="v">'
 		for every_element in content[0]:
+			if type(every_element) != type(None):
+				page_content = page_content + cgi.escape(every_element.encode('utf-8')) + '</br></br>'
+		page_content = page_content + '</td></tr>'
+
+		# For the title
+		page_content = page_content + '<tr><td class="e" id="title_of_page">' + cgi.escape("<title>")  + '</td><td class="v">' + content[1] + '</td></tr>'
+		
+		# For All the emails
+		page_content = page_content + '<tr><td class="e" id="emails">' + cgi.escape("E-mails")  + '</td><td class="v">'
+		for every_element in content[2]:
 			if type(every_element) != type(None):
 				page_content = page_content + cgi.escape(every_element.encode('utf-8')) + '</br></br>'
 		page_content = page_content + '</td></tr>'
 		
 	return page_content
 
-def build_web_page(url, cookies_dict):
+def build_web_page(url, cookies_dict, proxies_dict):
 
 	# Send a request to the url and return the response + a beautify version of it
-	response,beautiful_response = send_request_and_beautify_the_response(url, cookies_dict)
+	response,beautiful_response = send_request_and_beautify_the_response(url, cookies_dict, proxies_dict)
 
 	web_page = """
 		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
@@ -218,6 +249,10 @@ def build_web_page(url, cookies_dict):
 	response_header = get_response_header(response)
 	page_content = creating_content('Response Header',(response_header, response))
 
+	# Building Allowed HTTP Verbs Content
+	allowed_verbs = get_allowed_http_verbs(url)
+	page_content = page_content + creating_content('Allowed HTTP Verbs', allowed_verbs)
+
 	# Building Robots.txt Content
 	robots_txt_file, base_url_for_robots_txt = get_robots_txt(url)
 	page_content = page_content + creating_content('Robots.txt', (robots_txt_file, base_url_for_robots_txt))
@@ -227,14 +262,15 @@ def build_web_page(url, cookies_dict):
 	page_content = page_content + creating_content('All Tags', (list_of_all_link_tags, list_of_all_img_tags, list_of_all_comments_tags, list_of_all_meta_tags, list_of_all_hidden_fields))
 
 	# Building All Information Content
-	list_of_links, page_title = get_information(beautiful_response)
-	page_content = page_content + creating_content('All Information', (list_of_links, page_title))
+	list_of_links, page_title, list_of_emails = get_information(beautiful_response)
+	page_content = page_content + creating_content('All Information', (list_of_links, page_title, list_of_emails))
 
 	# Finishing the page 
 	web_page = web_page + page_content + "</table></div></body></html>"
 
 	return web_page
 
+# Other usefull functions
 def write_to_file(web_page,file_name):
 	# Writing the page to a file for preview 
 	with open(file_name, "w"):
@@ -245,26 +281,9 @@ def write_to_file(web_page,file_name):
         
 	print "[*] Results written to results.html [*]"
 
-if __name__ == "__main__":
-
-	print """
- __                                               
-/ _\ ___  _   _ _ __   ___ _ __       _ __  _   _ 
-\ \ / _ \| | | | '_ \ / _ \ '__|     | '_ \| | | |
-_\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
-\__/\___/ \__,_| .__/ \___|_|    (_) | .__/ \__, |
-               |_|                   |_|    |___/ 
-	"""
-
+def cookies_dcit_generator(cookie_bool):
 	# We create the dict that'll contain the formated values
 	cookies_dict = {}
-
-	# Get the url of the website
-	url = str(raw_input("Enter the url of the website you want \n"))
-
-	# Check if the user wants to provide cookies
-	cookie_bool = str(raw_input("Do you want to provide cookies ? (yes/no) \n"))
-
 	if cookie_bool == "yes":
 		# We get the cookies from the user
 		cookies_value = str(raw_input("Provide the cookies value (cookie_name:cookie_value)\nIn case of multiple cookies sperate the by a commas (cookie_name_1:cookie_value, cookie_name_2:cookie_value ....))\n"))
@@ -277,10 +296,42 @@ _\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
 			cookie = every_cookie.split(':')
 			cookies_dict[cookie[0]] = cookie[1]
 
-		web_page = build_web_page(url, cookies_dict)
+	return cookies_dict
 
-	else :
-		web_page = build_web_page(url, cookies_dict)
+def proxy_dict_generator(proxy_bool):
+	# We create the dict that'll contain the formated values
+	proxies_dict = {}
+	if proxy_bool == "yes":
+		http_proxy = str(raw_input("HTTP PROXY : "))
+		https_proxy = str(raw_input("HTTPS PROXY : "))
+		cookies_dict = {'http': http_proxy, 'https': https_proxy}
+	
+	return proxies_dict
+
+# The main function
+if __name__ == "__main__":
+
+	print """
+ __                                               
+/ _\ ___  _   _ _ __   ___ _ __       _ __  _   _ 
+\ \ / _ \| | | | '_ \ / _ \ '__|     | '_ \| | | |
+_\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
+\__/\___/ \__,_| .__/ \___|_|    (_) | .__/ \__, |
+               |_|                   |_|    |___/ 
+	"""
+
+	# Get the url of the website
+	url = str(raw_input("Enter the url of the website you want \n"))
+
+	# Check if the user wants to provide a proxy
+	proxy_bool = str(raw_input("Do you want to connect through a proxy ? (yes/no) \n"))
+	proxies_dict = proxy_dict_generator(proxy_bool)
+
+	# Check if the user wants to provide cookies
+	cookie_bool = str(raw_input("Do you want to provide cookies ? (yes/no) \n"))
+	cookies_dict = cookies_dcit_generator(cookie_bool)
+
+	web_page = build_web_page(url, cookies_dict, proxies_dict)
 
 	write_to_file(web_page,'results.html')
 	

@@ -12,8 +12,20 @@ Currently the script extract the follwing **Tags** and **Informations** :
 * ```Hidden Inputs <input type='hidden'> ```
 * ```Title Tags <title> ```
 * ```Hrefs in Hyperlink Tags <a href=''> ```
+* ```E-mails ```
+* ```Allowed HTTP Verbs ```
+
+The script support :
+* Connection via an (HTTP, HTTPS) **proxy** 
+* **Cookies** values in case login is required.
 
 To use the script, use the following command:
 
 **python souper.py**
 
+ __                                               
+/ _\ ___  _   _ _ __   ___ _ __       _ __  _   _ 
+\ \ / _ \| | | | '_ \ / _ \ '__|     | '_ \| | | |
+_\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
+\__/\___/ \__,_| .__/ \___|_|    (_) | .__/ \__, |
+               |_|                   |_|    |___/ 
