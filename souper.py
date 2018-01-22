@@ -23,7 +23,7 @@ def get_allowed_http_verbs(url):
 	verbs = ['GET', 'HEAD' , 'POST', 'PUT', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
 	allowed_verbs = []
 	for every_verb in verbs:
-		r = requests.request(every_verb, url)
+		r = requests.request(every_verb, url, verify=False)
 		if r.status_code == 200:
 			allowed_verbs.append(every_verb)
 
@@ -79,7 +79,7 @@ def get_all_tags(r):
 def get_robots_txt(url):
 	parsed_url = urlparse.urlparse(url)
 	base_url = parsed_url.scheme + '://' + parsed_url.netloc +'/robots.txt'
-	response = requests.get(base_url)
+	response = requests.get(base_url, verify=False)
 	if response.status_code == 200:
 		response_text = response.text
 		beautiful_response = BeautifulSoup(response_text, 'html.parser').prettify().encode('utf-8').split('\n')[:-1]
@@ -197,7 +197,7 @@ def creating_content(title, content):
 
 		# For the title
 		page_content = page_content + '<tr><td class="e" id="title_of_page">' + cgi.escape("<title>")  + '</td><td class="v">' + content[1] + '</td></tr>'
-		
+
 		# For All the emails
 		page_content = page_content + '<tr><td class="e" id="emails">' + cgi.escape("E-mails")  + '</td><td class="v">'
 		for every_element in content[2]:
