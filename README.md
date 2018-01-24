@@ -1,6 +1,11 @@
 # Souper
 A python script that extract information from a given web page and display that information in a generated **HTML** file.
 
+### Script Requirements :
+* Python Modules : **Requests**, **Selenium**, **BeautifulSoup**.
+* **ChromeDriver** - [Download Link](https://goo.gl/gtYUc1) (Copy downloaded file in the root of the python installation)
+* Python 2.7.X
+
 Currently the script extract the follwing **Tags** and **Informations** : 
 
 * HTTP Response Header.
@@ -16,9 +21,12 @@ Currently the script extract the follwing **Tags** and **Informations** :
 * ```Allowed HTTP Verbs ```
 
 The script support :
-* Connection via an (HTTP, HTTPS) **proxy** 
-* **Cookies** values in case login is required.
+* Connection via an (HTTP, HTTPS) **Proxy**.
+* Requesting the page via a headless browser via the **Selenium** Module.
+* **Cookies** : In case login is required (Not yet supported when using Selenium Module).
+
 
 To use the script, use the following command:
 
 **python souper.py**
+

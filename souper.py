@@ -1,16 +1,72 @@
 from bs4 import BeautifulSoup, Comment
 import requests, cgi, urlparse, re
+from selenium import webdriver
 
+# SELENIUM FUNCTIONS - START
+def start_driver(url, PROXY):
+	options= webdriver.ChromeOptions()
+	options.add_argument('headless')
+	options.add_argument('window-size=1200x600')
 
-def send_request_and_beautify_the_response(url, cookies_dict, proxies_dict):
-	# send a GET request to the website without verifying SSL, and provide cookies value
+	if PROXY != False :
+		options.add_argument('--proxy-server=' + PROXY)
+
+	driver = webdriver.Chrome(chrome_options=options)
+	driver.get(url)
+	return driver
+
+def get_beautiful_source_code(driver):
+
+	"""
+	# Selenium Examples
+
+	# Get all the links
+		element = driver.find_elements_by_xpath("//a")
+	# Get the title
+		element = driver.find_elements_by_xpath("//title")
+
+	# Get some attributes
+		for i in element:
+			i.get_attribute("innerHTML")
+			i.get_attribute("innerHTML")
+			i.get_attribute("value")
+	"""
+
+	source_code = driver.find_elements_by_xpath("//*")[0].get_attribute("outerHTML")
+	beautiful_source_code = BeautifulSoup(source_code, 'html.parser')
+	driver.close()
+	driver.quit()
+	return beautiful_source_code
+
+def get_screenshot(driver_instance,path_to_image):
+	return driver_instance.get_screenshot_as_file(path_to_image)
+# SELENIUM FUNCTIONS - END
+
+def send_request_and_beautify_the_response(url, cookies_dict, proxies_dict, method):
+	# Send a GET request to the website without verifying SSL certificate, and provide cookies value
 	response = requests.get(url, verify=False, cookies=cookies_dict, proxies=proxies_dict)
 
-	# get the response in text format
-	response_text = response.text
+	if method == "Requests":
+		# Get the response in text format
+		response_text = response.text
+		# Beautify the response
+		beautiful_response = BeautifulSoup(response_text, 'html.parser')
 
-	# Beautify the response
-	beautiful_response = BeautifulSoup(response_text, 'html.parser')
+	elif method == "Selenium":
+		# We start the headless browser (Chrome) with the url and check if it's an HTTP or HTTPS website
+		if proxies_dict != {} :
+			if urlparse.urlparse(url).scheme == 'https':
+				driver = start_driver(url, proxies_dict['https'])
+			elif urlparse.urlparse(url).scheme == 'http':
+				driver = start_driver(url, proxies_dict['http'])
+		else :
+			driver = start_driver(url, False)
+
+		# Save a screenshot of the website 
+		get_screenshot(driver,'screenshot.png')
+
+		# We connect to website and request the source code and beautify it
+		beautiful_response = get_beautiful_source_code(driver)
 
 	# Return the response of the request and beautify it
 	return response,beautiful_response
@@ -207,10 +263,10 @@ def creating_content(title, content):
 		
 	return page_content
 
-def build_web_page(url, cookies_dict, proxies_dict):
+def build_web_page(url, cookies_dict, proxies_dict, method):
 
 	# Send a request to the url and return the response + a beautify version of it
-	response,beautiful_response = send_request_and_beautify_the_response(url, cookies_dict, proxies_dict)
+	response,beautiful_response = send_request_and_beautify_the_response(url, cookies_dict, proxies_dict, method)
 
 	web_page = """
 		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
@@ -281,7 +337,7 @@ def write_to_file(web_page,file_name):
         
 	print "[*] Results written to results.html [*]"
 
-def cookies_dcit_generator(cookie_bool):
+def cookies_dict_generator(cookie_bool):
 	# We create the dict that'll contain the formated values
 	cookies_dict = {}
 	if cookie_bool == "yes":
@@ -304,7 +360,7 @@ def proxy_dict_generator(proxy_bool):
 	if proxy_bool == "yes":
 		http_proxy = str(raw_input("HTTP PROXY : "))
 		https_proxy = str(raw_input("HTTPS PROXY : "))
-		cookies_dict = {'http': http_proxy, 'https': https_proxy}
+		proxies_dict = {'http': http_proxy, 'https': https_proxy}
 	
 	return proxies_dict
 
@@ -329,9 +385,14 @@ _\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
 
 	# Check if the user wants to provide cookies
 	cookie_bool = str(raw_input("Do you want to provide cookies ? (yes/no) \n"))
-	cookies_dict = cookies_dcit_generator(cookie_bool)
+	cookies_dict = cookies_dict_generator(cookie_bool)
 
-	web_page = build_web_page(url, cookies_dict, proxies_dict)
+	# Choose a method to request the page Selenium Module / Requests Module
+	method_bool = int(raw_input("Request page using : \n - Selenium Module [1] \n - Requests Module [2]  \n"))
+	if method_bool == 1 :
+		web_page = build_web_page(url, cookies_dict, proxies_dict, "Selenium")
+	elif method_bool == 2 :
+		web_page = build_web_page(url, cookies_dict, proxies_dict, "Requests")
 
 	write_to_file(web_page,'results.html')
 	
