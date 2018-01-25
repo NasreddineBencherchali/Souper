@@ -87,7 +87,9 @@ def get_allowed_http_verbs(url):
 
 def get_information(r):
 	# Get the title of the page
-	page_title = r.title.string.encode("utf-8")
+	page_title = r.title.string
+	if type(page_title) != type(None):
+		page_title.encode("utf-8")
 
 	# Get a list of all the links
 	list_of_links = []
@@ -99,7 +101,8 @@ def get_information(r):
 	list_of_emails = re.findall(email_regex,r.text)
 	list_of_emails_decoded = []
 	for every_email in list_of_emails:
-		list_of_emails_decoded.append(every_email.encode('utf-8'))
+		if type(every_email) != type(None):
+			list_of_emails_decoded.append(every_email.encode('utf-8'))
 
 	# Returns the list of all the links found in a page in case we want to crawl them for more information
 	return list_of_links, page_title, list_of_emails_decoded
