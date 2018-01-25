@@ -22,7 +22,7 @@ Currently the script extract the follwing **Tags** and **Informations** :
 
 The script support :
 * Connection via an (HTTP, HTTPS) **Proxy**.
-* Requesting the page via a headless browser via the **Selenium** Module.
+* Requesting the page via a headless browser via the **Selenium** Module using **ChromeDriver**.
 * **Cookies** : In case login is required (Not yet supported when using Selenium Module).
 
 
