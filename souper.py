@@ -86,7 +86,7 @@ def get_response_header(r):
 
 
 def get_allowed_http_verbs(url):
-	verbs = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
+	verbs = ['TRACE', 'PATCH', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 	allowed_verbs = []
 	for every_verb in verbs:
 		r = requests.request(every_verb, url, verify=False)
@@ -123,27 +123,27 @@ def get_all_tags(r):
 	# Get all the </a> tags
 	list_of_all_link_tags = []
 	for link_tags in r.find_all('a'):
-		list_of_all_link_tags.append(link_tags)
+		list_of_all_link_tags.append(unicode(str(link_tags), 'utf-8'))
 
 	# Get all the <!-- --> tags
 	list_of_all_comments_tags = []
 	for comment_tags in r.findAll(text=lambda text: isinstance(text, Comment)):
-		list_of_all_comments_tags.append(comment_tags)
+		list_of_all_comments_tags.append(unicode(str(comment_tags), 'utf-8'))
 
 	# Get all the <img> tags
 	list_of_all_img_tags = []
 	for img_tags in r.findAll('img'):
-		list_of_all_img_tags.append(img_tags)
+		list_of_all_img_tags.append(unicode(str(img_tags), 'utf-8'))
 
 	# Get all the <meta> tags
 	list_of_all_meta_tags = []
 	for meta_tags in r.findAll('meta'):
-		list_of_all_meta_tags.append(meta_tags)
+		list_of_all_meta_tags.append(unicode(str(meta_tags), 'utf-8'))
 
 	# Get all the hidden fields
 	list_of_all_hidden_fields = []
 	for hidden_fields in r.find_all("input", type="hidden"):
-		list_of_all_hidden_fields.append(hidden_fields)
+		list_of_all_hidden_fields.append(unicode(str(hidden_fields), 'utf-8'))
 
 	return list_of_all_link_tags, list_of_all_img_tags, list_of_all_comments_tags, list_of_all_meta_tags, list_of_all_hidden_fields
 
@@ -218,7 +218,7 @@ def creating_content(title, content):
 		if not content[0]:
 			page_content = '<tr><td class="e" id="Robots_txt">' + title.encode("utf-8") + '</td><td class="v">'
 
-		if not content[0]:
+		elif content[0]:
 			page_content = '<tr><td class="e" id="Robots_txt">' + title.encode("utf-8") + ' (<a href=' + content[1] + '>' + content[1] + '</a>)</td><td class="v">'
 			for every_element in content[0]:
 				if type(every_element) != type(None):
@@ -237,28 +237,40 @@ def creating_content(title, content):
 		page_content = page_content + '<tr><td class="e" id="img_tags">' + cgi.escape("<img>") + '</td><td class="v">'
 		for every_element in content[1]:
 			if type(every_element) != type(None):
-				page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				else:
+					page_content = page_content + cgi.escape(every_element) + '</br></br>'
 		page_content += '</td></tr>'
 
 		# For All Comments Tags
 		page_content = page_content + '<tr><td class="e" id="comments_tags">' + cgi.escape("<!-- -->") + '</td><td class="v">'
 		for every_element in content[2]:
 			if type(every_element) != type(None):
-				page_content = page_content + "&lt!-- " + cgi.escape(every_element.encode("utf-8")) + '--&gt </br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + "&lt!-- " + cgi.escape(every_element.encode("utf-8")) + '--&gt </br></br>'
+				else:
+					page_content = page_content + "&lt!-- " + cgi.escape(every_element) + '--&gt </br></br>'
 		page_content += '</td></tr>'
 
 		# For All Meta Tags
 		page_content = page_content + '<tr><td class="e" id="meta_tags">' + cgi.escape("<meta>") + '</td><td class="v">'
 		for every_element in content[3]:
 			if type(every_element) != type(None):
-				page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				else:
+					page_content = page_content + cgi.escape(every_element) + '</br></br>'
 		page_content += '</td></tr>'
 
 		# For All Hidden Fields
 		page_content = page_content + '<tr><td class="e" id="hidden_inputs">' + cgi.escape("<input type='hidden'>") + '</td><td class="v">'
 		for every_element in content[4]:
 			if type(every_element) != type(None):
-				page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+				else:
+					page_content = page_content + cgi.escape(every_element) + '</br></br>'
 		page_content += '</td></tr>'
 
 	elif title == "All Information":
@@ -267,17 +279,24 @@ def creating_content(title, content):
 		page_content = '<tr><td class="e" id="hrefs">' + cgi.escape("<a href='' >") + '</td><td class="v">'
 		for every_element in content[0]:
 			if type(every_element) != type(None):
-				page_content = page_content + cgi.escape(every_element.encode('utf-8')) + '</br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
+				else:
+					page_content = page_content + cgi.escape(every_element) + '</br></br>'
 		page_content += '</td></tr>'
 
 		# For the title
-		page_content = page_content + '<tr><td class="e" id="title_of_page">' + cgi.escape("<title>") + '</td><td class="v">' + content[1] + '</td></tr>'
+		page_content = page_content + '<tr><td class="e" id="title_of_page">' + cgi.escape("<title>") + '</td><td class="v">' + content[1].encode('utf-8') + '</td></tr>'
 
 		# For All the emails
 		page_content = page_content + '<tr><td class="e" id="emails">' + cgi.escape("E-mails") + '</td><td class="v">'
 		for every_element in content[2]:
 			if type(every_element) != type(None):
-				page_content = page_content + cgi.escape(every_element.encode('utf-8')) + '</br></br>'
+				if isinstance(every_element, unicode):
+					page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
+				else:
+					page_content = page_content + cgi.escape(every_element) + '</br></br>'
+
 		page_content += '</td></tr>'
 
 	return page_content
