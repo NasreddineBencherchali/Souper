@@ -8,8 +8,8 @@ A python script that extract information from a given web page and display that 
 
 Currently the script extract the follwing **Tags** and **Informations** : 
 
-* HTTP Response Header.
-* Robots.txt
+* ```HTTP Response Header ```
+* ```Robots.txt ```
 * ```Hyperlink Tags <a> ```
 * ```Image Tags <img> ```
 * ```Comment Tags <!-- --> ```
