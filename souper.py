@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup, Comment
 import requests
 import cgi
-import urlparse
+from urllib.parse import urlparse
 import re
 from selenium import webdriver
 
@@ -65,9 +65,9 @@ def send_request_and_beautify_the_response(url, cookies_dict, proxies_dict, meth
     elif method == "Selenium":
         # We start the headless browser (Chrome) with the url and check if it's an HTTP or HTTPS website
         if proxies_dict != {}:
-            if urlparse.urlparse(url).scheme == 'https':
+            if urlparse(url).scheme == 'https':
                 driver = start_driver(url, proxies_dict['https'])
-            elif urlparse.urlparse(url).scheme == 'http':
+            elif urlparse(url).scheme == 'http':
                 driver = start_driver(url, proxies_dict['http'])
         else:
             driver = start_driver(url, False)
@@ -125,33 +125,33 @@ def get_all_tags(r):
     # Get all the </a> tags
     list_of_all_link_tags = []
     for link_tags in r.find_all('a'):
-        list_of_all_link_tags.append(unicode(str(link_tags), 'utf-8'))
+        list_of_all_link_tags.append(str(link_tags), 'utf-8')
 
     # Get all the <!-- --> tags
     list_of_all_comments_tags = []
     for comment_tags in r.findAll(text=lambda text: isinstance(text, Comment)):
-        list_of_all_comments_tags.append(unicode(str(comment_tags), 'utf-8'))
+        list_of_all_comments_tags.append(str(comment_tags), 'utf-8')
 
     # Get all the <img> tags
     list_of_all_img_tags = []
     for img_tags in r.findAll('img'):
-        list_of_all_img_tags.append(unicode(str(img_tags), 'utf-8'))
+        list_of_all_img_tags.append(str(img_tags), 'utf-8')
 
     # Get all the <meta> tags
     list_of_all_meta_tags = []
     for meta_tags in r.findAll('meta'):
-        list_of_all_meta_tags.append(unicode(str(meta_tags), 'utf-8'))
+        list_of_all_meta_tags.append(str(meta_tags), 'utf-8')
 
     # Get all the hidden fields
     list_of_all_hidden_fields = []
     for hidden_fields in r.find_all("input", type="hidden"):
-        list_of_all_hidden_fields.append(unicode(str(hidden_fields), 'utf-8'))
+        list_of_all_hidden_fields.append(str(hidden_fields), 'utf-8')
 
     return list_of_all_link_tags, list_of_all_img_tags, list_of_all_comments_tags, list_of_all_meta_tags, list_of_all_hidden_fields
 
 
 def get_robots_txt(url):
-    parsed_url = urlparse.urlparse(url)
+    parsed_url = urlparse(url)
     base_url = parsed_url.scheme + '://' + parsed_url.netloc + '/robots.txt'
     response = requests.get(base_url, verify=False)
     if response.status_code == 200:
@@ -241,10 +241,8 @@ def creating_content(title, content):
         page_content = page_content + '<tr><td class="e" id="img_tags">' + cgi.escape("<img>") + '</td><td class="v">'
         for every_element in content[1]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
-                else:
-                    page_content = page_content + cgi.escape(every_element) + '</br></br>'
+                page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+
         page_content += '</td></tr>'
 
         # For All Comments Tags
@@ -252,21 +250,16 @@ def creating_content(title, content):
             "<!-- -->") + '</td><td class="v">'
         for every_element in content[2]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + "&lt!-- " + cgi.escape(
-                        every_element.encode("utf-8")) + '--&gt </br></br>'
-                else:
-                    page_content = page_content + "&lt!-- " + cgi.escape(every_element) + '--&gt </br></br>'
+                page_content = page_content + "&lt!-- " + cgi.escape(every_element.encode("utf-8")) + '--&gt </br></br>'
+
         page_content += '</td></tr>'
 
         # For All Meta Tags
         page_content = page_content + '<tr><td class="e" id="meta_tags">' + cgi.escape("<meta>") + '</td><td class="v">'
         for every_element in content[3]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
-                else:
-                    page_content = page_content + cgi.escape(every_element) + '</br></br>'
+                page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+                
         page_content += '</td></tr>'
 
         # For All Hidden Fields
@@ -274,10 +267,8 @@ def creating_content(title, content):
             "<input type='hidden'>") + '</td><td class="v">'
         for every_element in content[4]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
-                else:
-                    page_content = page_content + cgi.escape(every_element) + '</br></br>'
+                page_content = page_content + cgi.escape(every_element.encode("utf-8")) + '</br></br>'
+                
         page_content += '</td></tr>'
 
     elif title == "All Information":
@@ -286,10 +277,8 @@ def creating_content(title, content):
         page_content = '<tr><td class="e" id="hrefs">' + cgi.escape("<a href='' >") + '</td><td class="v">'
         for every_element in content[0]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
-                else:
-                    page_content = page_content + cgi.escape(every_element) + '</br></br>'
+                page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
+                
         page_content += '</td></tr>'
 
         # For the title
@@ -300,11 +289,8 @@ def creating_content(title, content):
         page_content = page_content + '<tr><td class="e" id="emails">' + cgi.escape("E-mails") + '</td><td class="v">'
         for every_element in content[2]:
             if type(every_element) != type(None):
-                if isinstance(every_element, unicode):
-                    page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
-                else:
-                    page_content = page_content + cgi.escape(every_element) + '</br></br>'
-
+                page_content = page_content + cgi.escape(every_element).encode('utf-8') + '</br></br>'
+                
         page_content += '</td></tr>'
 
     return page_content
@@ -385,7 +371,7 @@ def write_to_file(web_page, file_name):
     with open(file_name, 'w') as html_file:
         html_file.write(web_page)
 
-    print "[*] Results written to results.html [*]"
+    print ("[*] Results written to results.html [*]")
 
 
 def cookies_dict_generator(cookie_bool):
@@ -393,7 +379,7 @@ def cookies_dict_generator(cookie_bool):
     cookies_dict = {}
     if cookie_bool == "yes":
         # We get the cookies from the user
-        cookies_value = str(raw_input(
+        cookies_value = str(input(
             "Provide the cookies value (cookie_name:cookie_value)\nIn case of multiple cookies separate them "
             "by commas (cookie_name_1:cookie_value, cookie_name_2:cookie_value ....))\n"))
 
@@ -412,8 +398,8 @@ def proxy_dict_generator(proxy_bool):
     # We create the dict that'll contain the formated values
     proxies_dict = {}
     if proxy_bool == "yes":
-        http_proxy = str(raw_input("HTTP PROXY : "))
-        https_proxy = str(raw_input("HTTPS PROXY : "))
+        http_proxy = str(input("HTTP PROXY : "))
+        https_proxy = str(input("HTTPS PROXY : "))
         proxies_dict = {'http': http_proxy, 'https': https_proxy}
 
     return proxies_dict
@@ -422,28 +408,28 @@ def proxy_dict_generator(proxy_bool):
 # The main function
 if __name__ == "__main__":
 
-    print """
+    print ("""
  __                                               
 / _\ ___  _   _ _ __   ___ _ __       _ __  _   _ 
 \ \ / _ \| | | | '_ \ / _ \ '__|     | '_ \| | | |
 _\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
 \__/\___/ \__,_| .__/ \___|_|    (_) | .__/ \__, |
                |_|                   |_|    |___/
-               """
+               """)
 
     # Get the url of the website
-    url = str(raw_input("Enter the url of the website you want \n"))
+    url = str(input("Enter the url of the website you want \n"))
 
     # Check if the user wants to provide a proxy
-    proxy_bool = str(raw_input("Do you want to connect through a proxy ? (yes/no) \n"))
+    proxy_bool = str(input("Do you want to connect through a proxy ? (yes/no) \n"))
     proxies_dict = proxy_dict_generator(proxy_bool)
 
     # Check if the user wants to provide cookies
-    cookie_bool = str(raw_input("Do you want to provide cookies ? (yes/no) \n"))
+    cookie_bool = str(input("Do you want to provide cookies ? (yes/no) \n"))
     cookies_dict = cookies_dict_generator(cookie_bool)
 
     # Choose a method to request the page Selenium Module / Requests Module
-    method_bool = int(raw_input("Request page using : \n - Selenium Module [1] \n - Requests Module [2]  \n"))
+    method_bool = int(input("Request page using : \n - Selenium Module [1] \n - Requests Module [2]  \n"))
     if method_bool == 1:
         web_page = build_web_page(url, cookies_dict, proxies_dict, "Selenium")
     elif method_bool == 2:

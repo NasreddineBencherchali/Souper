@@ -4,7 +4,7 @@ A python script that extract information from a given web page and display that 
 ### Script Requirements :
 * Python Modules : **Requests**, **Selenium**, **BeautifulSoup**.
 * **ChromeDriver** - [Download Link](https://goo.gl/gtYUc1) (Copy downloaded file in the root of the python installation)
-* Python 2.7.X
+* Python 2.7.X / Python 3.X
 
 Currently the script extract the follwing **Tags** and **Informations** : 
 
