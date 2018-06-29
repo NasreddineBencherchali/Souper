@@ -9,6 +9,12 @@ A python script that extract information from a given web page and display that 
 * **BeautifulSoup**
 * **ChromeDriver** - [Download Link](https://goo.gl/gtYUc1) (Copy downloaded file in the root of the python installation)
 
+Install requirements :
+
+```bash
+pip install -r Requirements.txt
+```
+
 ## Functionalities
 
 Currently the script extract the follwing **Tags** and **Informations** :
