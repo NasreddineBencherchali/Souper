@@ -422,14 +422,14 @@ def proxy_dict_generator(proxy_bool):
 # The main function
 if __name__ == "__main__":
 
-    print """
+    print (r"""
  __                                               
 / _\ ___  _   _ _ __   ___ _ __       _ __  _   _ 
 \ \ / _ \| | | | '_ \ / _ \ '__|     | '_ \| | | |
 _\ \ (_) | |_| | |_) |  __/ |     _  | |_) | |_| |
 \__/\___/ \__,_| .__/ \___|_|    (_) | .__/ \__, |
                |_|                   |_|    |___/
-               """
+               """)
 
     # Get the url of the website
     url = str(raw_input("Enter the url of the website you want \n"))
